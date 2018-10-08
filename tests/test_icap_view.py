@@ -44,6 +44,16 @@ class TestIcapView(unittest.TestCase):
 
         self.assertEqual(task_id, expected)
 
+    def test_get_task_link(self):
+        """IcapView - GET on /api/1/inf/icap sets the Link header"""
+        resp = self.app.get('/api/1/inf/icap',
+                            headers={'X-Auth': self.token})
+
+        task_id = resp.headers['Link']
+        expected = '<https://localhost/api/1/inf/icap/task/asdf-asdf-asdf>; rel=status'
+
+        self.assertEqual(task_id, expected)
+
     def test_post_task(self):
         """IcapView - POST on /api/1/inf/icap returns a task-id"""
         resp = self.app.post('/api/1/inf/icap',
@@ -54,6 +64,19 @@ class TestIcapView(unittest.TestCase):
 
         task_id = resp.json['content']['task-id']
         expected = 'asdf-asdf-asdf'
+
+        self.assertEqual(task_id, expected)
+
+    def test_post_task_link(self):
+        """IcapView - POST on /api/1/inf/icap sets the Link header"""
+        resp = self.app.post('/api/1/inf/icap',
+                             headers={'X-Auth': self.token},
+                             json={'network': "someLAN",
+                                   'name': "myIcapBox",
+                                   'image': "someVersion"})
+
+        task_id = resp.headers['Link']
+        expected = '<https://localhost/api/1/inf/icap/task/asdf-asdf-asdf>; rel=status'
 
         self.assertEqual(task_id, expected)
 
@@ -68,6 +91,17 @@ class TestIcapView(unittest.TestCase):
 
         self.assertEqual(task_id, expected)
 
+    def test_delete_task_link(self):
+        """IcapView - DELETE on /api/1/inf/icap sets the Link header"""
+        resp = self.app.delete('/api/1/inf/icap',
+                               headers={'X-Auth': self.token},
+                               json={'name' : 'myIcapBox'})
+
+        task_id = resp.headers['Link']
+        expected = '<https://localhost/api/1/inf/icap/task/asdf-asdf-asdf>; rel=status'
+
+        self.assertEqual(task_id, expected)
+
     def test_image(self):
         """IcapView - GET on the ./image end point returns the a task-id"""
         resp = self.app.get('/api/1/inf/icap/image',
@@ -77,6 +111,11 @@ class TestIcapView(unittest.TestCase):
         expected = 'asdf-asdf-asdf'
 
         self.assertEqual(task_id, expected)
+
+    def test_image_link(self):
+        """IcapView - GET on the ./image end point sets the Link header"""
+        resp = self.app.get('/api/1/inf/icap/image',
+                            headers={'X-Auth': self.token})
 
 
 if __name__ == '__main__':
