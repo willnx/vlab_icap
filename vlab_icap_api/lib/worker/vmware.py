@@ -17,15 +17,13 @@ def show_icap(username):
     :param username: The user requesting info about their Icap
     :type username: String
     """
-    info = {}
+    icap_vms = {}
     with vCenter(host=const.INF_VCENTER_SERVER, user=const.INF_VCENTER_USER, \
                  password=const.INF_VCENTER_PASSWORD) as vcenter:
         folder = vcenter.get_by_name(name=username, vimtype=vim.Folder)
-        icap_vms = {}
         for vm in folder.childEntity:
             info = virtual_machine.get_info(vcenter, vm)
-            kind, version = info['note'].split('=')
-            if kind == 'ICAP':
+            if info['component'] == 'ICAP':
                 icap_vms[vm.name] = info
     return icap_vms
 
@@ -50,8 +48,7 @@ def delete_icap(username, machine_name, logger):
         for entity in folder.childEntity:
             if entity.name == machine_name:
                 info = virtual_machine.get_info(vcenter, entity)
-                kind, version = info['note'].split('=')
-                if kind == 'ICAP':
+                if info['component'] == 'ICAP':
                     logger.debug('powering off VM')
                     virtual_machine.power(entity, state='off')
                     delete_task = entity.Destroy_Task()
@@ -98,12 +95,15 @@ def create_icap(username, machine_name, image, network, logger):
                                                      username, machine_name, logger)
         finally:
             ova.close()
-        spec = vim.vm.ConfigSpec()
-        spec.annotation = 'ICAP={}'.format(image)
-        task = the_vm.ReconfigVM_Task(spec)
-        consume_task(task)
-        return virtual_machine.get_info(vcenter, the_vm)
-
+        meta_data = {'component' : "ICAP",
+                     'created': time.time(),
+                     'version': image,
+                     'configured': False,
+                     'generation': 1,
+                    }
+        virtual_machine.set_meta(the_vm, meta_data)
+        info = virtual_machine.get_info(vcenter, the_vm)
+        return {the_vm.name: info}
 
 def list_images():
     """Obtain a list of available versions of Icap that can be created
