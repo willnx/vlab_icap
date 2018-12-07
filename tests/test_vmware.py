@@ -34,6 +34,7 @@ class TestVMware(unittest.TestCase):
     @patch.object(vmware, 'vCenter')
     def test_delete_icap(self, fake_vCenter, fake_consume_task, fake_power, fake_get_info):
         """``delete_icap`` returns None when everything works as expected"""
+        fake_logger = MagicMock()
         fake_vm = MagicMock()
         fake_vm.name = 'IcapBox'
         fake_folder = MagicMock()
@@ -41,7 +42,7 @@ class TestVMware(unittest.TestCase):
         fake_vCenter.return_value.__enter__.return_value.get_by_name.return_value = fake_folder
         fake_get_info.return_value = {'note' : 'ICAP=1.0.0'}
 
-        output = vmware.delete_icap(username='bob', machine_name='IcapBox')
+        output = vmware.delete_icap(username='bob', machine_name='IcapBox', logger=fake_logger)
         expected = None
 
         self.assertEqual(output, expected)
@@ -52,6 +53,7 @@ class TestVMware(unittest.TestCase):
     @patch.object(vmware, 'vCenter')
     def test_delete_icap_value_error(self, fake_vCenter, fake_consume_task, fake_power, fake_get_info):
         """``delete_icap`` raises ValueError when unable to find requested vm for deletion"""
+        fake_logger = MagicMock()
         fake_vm = MagicMock()
         fake_vm.name = 'win10'
         fake_folder = MagicMock()
@@ -60,7 +62,7 @@ class TestVMware(unittest.TestCase):
         fake_get_info.return_value = {'note' : 'ICAP=1.0.0'}
 
         with self.assertRaises(ValueError):
-            vmware.delete_icap(username='bob', machine_name='myOtherIcapBox')
+            vmware.delete_icap(username='bob', machine_name='myOtherIcapBox', logger=fake_logger)
 
     @patch.object(vmware, 'Ova')
     @patch.object(vmware.virtual_machine, 'get_info')
@@ -69,6 +71,7 @@ class TestVMware(unittest.TestCase):
     @patch.object(vmware, 'vCenter')
     def test_create_icap(self, fake_vCenter, fake_consume_task, fake_deploy_from_ova, fake_get_info, fake_Ova):
         """``create_icap`` returns a dictionary upon success"""
+        fake_logger = MagicMock()
         fake_get_info.return_value = {'worked': True}
         fake_Ova.return_value.networks = ['someLAN']
         fake_vCenter.return_value.__enter__.return_value.networks = {'someLAN' : vmware.vim.Network(moId='1')}
@@ -76,7 +79,8 @@ class TestVMware(unittest.TestCase):
         output = vmware.create_icap(username='alice',
                                        machine_name='IcapBox',
                                        image='1.0.0',
-                                       network='someLAN')
+                                       network='someLAN',
+                                       logger=fake_logger)
         expected = {'worked': True}
 
         self.assertEqual(output, expected)
@@ -88,6 +92,7 @@ class TestVMware(unittest.TestCase):
     @patch.object(vmware, 'vCenter')
     def test_create_icap_invalid_network(self, fake_vCenter, fake_consume_task, fake_deploy_from_ova, fake_get_info, fake_Ova):
         """``create_icap`` raises ValueError if supplied with a non-existing network"""
+        fake_logger = MagicMock()
         fake_get_info.return_value = {'worked': True}
         fake_Ova.return_value.networks = ['someLAN']
         fake_vCenter.return_value.__enter__.return_value.networks = {'someLAN' : vmware.vim.Network(moId='1')}
@@ -96,7 +101,8 @@ class TestVMware(unittest.TestCase):
             vmware.create_icap(username='alice',
                                   machine_name='IcapBox',
                                   image='1.0.0',
-                                  network='someOtherLAN')
+                                  network='someOtherLAN',
+                                  logger=fake_logger)
 
     @patch.object(vmware.os, 'listdir')
     def test_list_images(self, fake_listdir):

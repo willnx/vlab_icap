@@ -62,8 +62,9 @@ class IcapView(TaskView):
     def get(self, *args, **kwargs):
         """Display the Icap instances you own"""
         username = kwargs['token']['username']
+        txn_id = request.headers.get('X-REQUEST-ID', 'noId')
         resp_data = {'user' : username}
-        task = current_app.celery_app.send_task('icap.show', [username])
+        task = current_app.celery_app.send_task('icap.show', [username, txn_id])
         resp_data['content'] = {'task-id': task.id}
         resp = Response(ujson.dumps(resp_data))
         resp.status_code = 202
@@ -75,12 +76,13 @@ class IcapView(TaskView):
     def post(self, *args, **kwargs):
         """Create a Icap"""
         username = kwargs['token']['username']
+        txn_id = request.headers.get('X-REQUEST-ID', 'noId')
         resp_data = {'user' : username}
         body = kwargs['body']
         machine_name = body['name']
         image = body['image']
         network = body['network']
-        task = current_app.celery_app.send_task('icap.create', [username, machine_name, image, network])
+        task = current_app.celery_app.send_task('icap.create', [username, machine_name, image, network, txn_id])
         resp_data['content'] = {'task-id': task.id}
         resp = Response(ujson.dumps(resp_data))
         resp.status_code = 202
@@ -92,9 +94,10 @@ class IcapView(TaskView):
     def delete(self, *args, **kwargs):
         """Destroy a Icap"""
         username = kwargs['token']['username']
+        txn_id = request.headers.get('X-REQUEST-ID', 'noId')
         resp_data = {'user' : username}
         machine_name = kwargs['body']['name']
-        task = current_app.celery_app.send_task('icap.delete', [username, machine_name])
+        task = current_app.celery_app.send_task('icap.delete', [username, machine_name, txn_id])
         resp_data['content'] = {'task-id': task.id}
         resp = Response(ujson.dumps(resp_data))
         resp.status_code = 202
@@ -107,8 +110,9 @@ class IcapView(TaskView):
     def image(self, *args, **kwargs):
         """Show available versions of Icap that can be deployed"""
         username = kwargs['token']['username']
+        txn_id = request.headers.get('X-REQUEST-ID', 'noId')
         resp_data = {'user' : username}
-        task = current_app.celery_app.send_task('icap.image')
+        task = current_app.celery_app.send_task('icap.image', [txn_id])
         resp_data['content'] = {'task-id': task.id}
         resp = Response(ujson.dumps(resp_data))
         resp.status_code = 202
