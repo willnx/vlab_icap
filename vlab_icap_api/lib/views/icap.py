@@ -1,11 +1,11 @@
 # -*- coding: UTF-8 -*-
 """
-TODO
+Defines the RESTful API for interacting with ICAP servers in vLab
 """
 import ujson
 from flask import current_app
 from flask_classy import request, route, Response
-from vlab_inf_common.views import TaskView
+from vlab_inf_common.views import MachineView
 from vlab_inf_common.vmware import vCenter, vim
 from vlab_api_common import describe, get_logger, requires, validate_input
 
@@ -16,9 +16,10 @@ from vlab_icap_api.lib import const
 logger = get_logger(__name__, loglevel=const.VLAB_ICAP_LOG_LEVEL)
 
 
-class IcapView(TaskView):
-    """API end point TODO"""
+class IcapView(MachineView):
+    """API end point for creating/deleting/listing/updating ICAP servers"""
     route_base = '/api/1/inf/icap'
+    RESOURCE = 'icap'
     POST_SCHEMA = { "$schema": "http://json-schema.org/draft-04/schema#",
                     "type": "object",
                     "description": "Create a icap",
