@@ -34,9 +34,19 @@ class TestIcapView(unittest.TestCase):
         cls.fake_task.id = 'asdf-asdf-asdf'
         app.celery_app.send_task.return_value = cls.fake_task
 
-    def test_get_task(self):
-        """IcapView - GET on /api/1/inf/icap returns a task-id"""
+    def test_v1_deprecated(self):
+        """IcapView - GET on /api/1/inf/icap returns an HTTP 404"""
         resp = self.app.get('/api/1/inf/icap',
+                            headers={'X-Auth': self.token})
+
+        status = resp.status_code
+        expected = 404
+
+        self.assertEqual(status, expected)
+
+    def test_get_task(self):
+        """IcapView - GET on /api/2/inf/icap returns a task-id"""
+        resp = self.app.get('/api/2/inf/icap',
                             headers={'X-Auth': self.token})
 
         task_id = resp.json['content']['task-id']
@@ -45,18 +55,18 @@ class TestIcapView(unittest.TestCase):
         self.assertEqual(task_id, expected)
 
     def test_get_task_link(self):
-        """IcapView - GET on /api/1/inf/icap sets the Link header"""
-        resp = self.app.get('/api/1/inf/icap',
+        """IcapView - GET on /api/2/inf/icap sets the Link header"""
+        resp = self.app.get('/api/2/inf/icap',
                             headers={'X-Auth': self.token})
 
         task_id = resp.headers['Link']
-        expected = '<https://localhost/api/1/inf/icap/task/asdf-asdf-asdf>; rel=status'
+        expected = '<https://localhost/api/2/inf/icap/task/asdf-asdf-asdf>; rel=status'
 
         self.assertEqual(task_id, expected)
 
     def test_post_task(self):
-        """IcapView - POST on /api/1/inf/icap returns a task-id"""
-        resp = self.app.post('/api/1/inf/icap',
+        """IcapView - POST on /api/2/inf/icap returns a task-id"""
+        resp = self.app.post('/api/2/inf/icap',
                              headers={'X-Auth': self.token},
                              json={'network': "someLAN",
                                    'name': "myIcapBox",
@@ -68,21 +78,21 @@ class TestIcapView(unittest.TestCase):
         self.assertEqual(task_id, expected)
 
     def test_post_task_link(self):
-        """IcapView - POST on /api/1/inf/icap sets the Link header"""
-        resp = self.app.post('/api/1/inf/icap',
+        """IcapView - POST on /api/2/inf/icap sets the Link header"""
+        resp = self.app.post('/api/2/inf/icap',
                              headers={'X-Auth': self.token},
                              json={'network': "someLAN",
                                    'name': "myIcapBox",
                                    'image': "someVersion"})
 
         task_id = resp.headers['Link']
-        expected = '<https://localhost/api/1/inf/icap/task/asdf-asdf-asdf>; rel=status'
+        expected = '<https://localhost/api/2/inf/icap/task/asdf-asdf-asdf>; rel=status'
 
         self.assertEqual(task_id, expected)
 
     def test_delete_task(self):
-        """IcapView - DELETE on /api/1/inf/icap returns a task-id"""
-        resp = self.app.delete('/api/1/inf/icap',
+        """IcapView - DELETE on /api/2/inf/icap returns a task-id"""
+        resp = self.app.delete('/api/2/inf/icap',
                                headers={'X-Auth': self.token},
                                json={'name' : 'myIcapBox'})
 
@@ -92,19 +102,19 @@ class TestIcapView(unittest.TestCase):
         self.assertEqual(task_id, expected)
 
     def test_delete_task_link(self):
-        """IcapView - DELETE on /api/1/inf/icap sets the Link header"""
-        resp = self.app.delete('/api/1/inf/icap',
+        """IcapView - DELETE on /api/2/inf/icap sets the Link header"""
+        resp = self.app.delete('/api/2/inf/icap',
                                headers={'X-Auth': self.token},
                                json={'name' : 'myIcapBox'})
 
         task_id = resp.headers['Link']
-        expected = '<https://localhost/api/1/inf/icap/task/asdf-asdf-asdf>; rel=status'
+        expected = '<https://localhost/api/2/inf/icap/task/asdf-asdf-asdf>; rel=status'
 
         self.assertEqual(task_id, expected)
 
     def test_image(self):
         """IcapView - GET on the ./image end point returns the a task-id"""
-        resp = self.app.get('/api/1/inf/icap/image',
+        resp = self.app.get('/api/2/inf/icap/image',
                             headers={'X-Auth': self.token})
 
         task_id = resp.json['content']['task-id']
@@ -114,7 +124,7 @@ class TestIcapView(unittest.TestCase):
 
     def test_image_link(self):
         """IcapView - GET on the ./image end point sets the Link header"""
-        resp = self.app.get('/api/1/inf/icap/image',
+        resp = self.app.get('/api/2/inf/icap/image',
                             headers={'X-Auth': self.token})
 
 
